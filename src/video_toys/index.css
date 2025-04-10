@@ -1,0 +1,178 @@
+@import url('https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css');
+@import url('https://cdn.jsdelivr.net/npm/react-tabs@6.1.0/style/react-tabs.min.css');
+
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Titan+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Symbols');
+
+:root {
+  --color-background: light-dark(#fff, #242428);
+  --color-text: light-dark(#000, #fff);
+  --color-accent: #4285f4;
+  --color-error: #f53311;
+
+  --font-display: 'Titan One', sans-serif;
+  --font-primary: 'Google Sans Flex', sans-serif;
+  --font-secondary: 'Google Sans', sans-serif;
+  --font-technical: 'Google Sans Code', sans-serif;
+  --font-symbols: 'Google Symbols', sans-serif;
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-weight: 400;
+  margin: 0;
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+/* Remove default margins and padding */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+ul,
+ol,
+dl,
+dt,
+dd,
+figure,
+figcaption,
+table,
+th,
+td,
+form,
+fieldset,
+legend,
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  border: 2px solid;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+}
+
+button:focus {
+  outline-color: var(--color-accent);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.button-primary {
+  --color-background: light-dark(#f0f0f0, #d4d4d4);
+  --color-background-active: light-dark(#fff, #fdfdfd);
+  --color-background-disabled: light-dark(#fcfcfc, #505053);
+
+  --color-border: light-dark(#9ba0a6, #e7e7e7);
+  --color-border-active: light-dark(#0c0c0c, #fff);
+  --color-border-disabled: light-dark(#ebeced, #47474a);
+
+  --color-text: light-dark(#000, #242428);
+  --color-text-active: light-dark(#000, #242428);
+  --color-text-disabled: light-dark(#ccc, #000);
+
+  background-color: var(--color-background);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.button-primary:hover,
+.button-primary:active {
+  background-color: var(--color-background-active);
+  border-color: var(--color-border-active);
+  color: var(--color-text-active);
+}
+
+.button-primary:disabled {
+  background-color: var(--color-background-disabled);
+  border-color: var(--color-border-disabled);
+  color: var(--color-text-disabled);
+}
+
+.button-secondary {
+  --color-background: transparent;
+  --color-background-active: transparent;
+  --color-background-disabled: light-dark(#ebeced, transparent);
+
+  --color-border: light-dark(#9ba0a6, #c1c1c1);
+  --color-border-active: light-dark(#0c0c0c, #fff);
+  --color-border-disabled: light-dark(#ebeced, #47474a);
+
+  --color-text-active: var(--color-text);
+  --color-text-disabled: light-dark(#bcbdbe, #505053);
+
+  background-color: var(--color-background);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.button-secondary:hover,
+.button-secondary:active {
+  background-color: var(--color-background-active);
+  border-color: var(--color-border-active);
+  color: var(--color-text-active);
+}
+
+.button-secondary:disabled {
+  background-color: var(--color-background-disabled);
+  border-color: var(--color-border-disabled);
+  color: var(--color-text-disabled);
+}
+
+input {
+  --color-background: light-dark(transparent, #313131);
+  --color-background-disabled: transparent;
+
+  --color-border: light-dark(#ccc, #e5e5e5);
+  --color-border-disabled: light-dark(#ccc, #5e5e5e);
+
+  --color-text-disabled: light-dark(#dcdcdc, #464649);
+
+  background-color: var(--color-background);
+  border: 1px solid;
+  border-color: var(--color-border);
+  color: var(--color-text);
+  border-radius: 4px;
+  box-sizing: border-box;
+  padding: 0.5rem;
+
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+}
+
+input:disabled {
+  background-color: var(--color-background-disabled);
+  border-color: var(--color-border-disabled);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+input::placeholder {
+  opacity: 0.5;
+}
+
+input:focus::placeholder {
+  opacity: 0;
+}

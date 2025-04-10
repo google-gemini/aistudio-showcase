@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Windows 95 Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- External JS Libraries -->
+    <!-- Add Import Map for Google GenAI -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.sh/@google/genai@0.7.0",
+          "@tailwindcss/browser": "https://esm.sh/@tailwindcss/browser@^4.1.3"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="desktop" id="desktop">
+      <!-- Desktop Icons -->
+      <div class="icon" data-app="myComputer">
+        <img
+          src="https://storage.googleapis.com/gemini-95-icons/mycomputer.png"
+          alt="My Computer"
+          style="width: 70px; height: 50px"
+        />
+        <span>My Gemtop</span>
+      </div>
+      <div class="icon" data-app="chrome">
+        <img src="https://storage.googleapis.com/gemini-95-icons/chrome-icon-2.png" alt="Chrome" />
+        <span>Chrome</span>
+      </div>
+      <div class="icon" data-app="notepad">
+        <img src="https://storage.googleapis.com/gemini-95-icons/GemNotes.png" alt="Notepad" />
+        <span>GemNotes</span>
+      </div>
+      <div class="icon" data-app="paint">
+        <img src="https://storage.googleapis.com/gemini-95-icons/gempaint.png" alt="Paint" />
+        <span>GemPaint</span>
+      </div>
+      <div class="icon" data-app="doom">
+        <img
+          src="https://64.media.tumblr.com/1d89dfa76381e5c14210a2149c83790d/7a15f84c681c1cf9-c1/s540x810/86985984be99d5591e0cbc0dea6f05ffa3136dac.png"
+          alt="Doom II"
+        />
+        <span>Doom II</span>
+      </div>
+      <div class="icon" data-app="gemini">
+        <img
+          src="https://storage.googleapis.com/gemini-95-icons/GeminiChatRetro.png"
+          alt="Gemini Chat"
+        />
+        <!-- Replace with a better Win95 style icon if desired -->
+        <span>Gemini Chat</span>
+      </div>
+      <!-- >>> Add Minesweeper Icon <<< -->
+      <div class="icon" data-app="minesweeper">
+        <img
+          src="https://storage.googleapis.com/gemini-95-icons/gemsweeper.png"
+          alt="Minesweeper"
+          style="width: 48px; height: 48px"
+        />
+        <span>GemSweeper</span>
+      </div>
+
+      <!-- Windows -->
+      <div class="window resizable" id="myComputer">
+        <div class="window-titlebar">
+          <span class="window-title">My Gemtop</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div class="window-content" style="background-color: white">
+          <!-- Initial C Drive Icon -->
+          <div id="c-drive-icon" class="window-icon">
+            <img src="https://storage.googleapis.com/gemini-95-icons/cdrive.png" alt="C Drive" />
+            <span>C:</span>
+          </div>
+          <!-- Hidden C Drive Content -->
+          <div id="c-drive-content" style="display: none">
+            <div id="secret-image-icon" class="window-icon">
+              <img
+                src="https://win98icons.alexmeub.com/icons/png/paint_file-0.png"
+                alt="Secret File"
+              />
+              <span>dontshowthis<br />toanyone.jpg</span>
+            </div>
+          </div>
+          <!-- <p>Displays the contents of your computer, including drives, files, and folders.</p> -->
+        </div>
+      </div>
+
+      <div class="window resizable" id="chrome">
+        <div class="window-titlebar">
+          <span class="window-title">Chrome</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div class="window-content">
+          <div class="browser-toolbar">
+            <div class="address-bar-container">
+              <input
+                type="text"
+                class="browser-address-bar"
+                placeholder="Enter a website URL..."
+                value="https://www.google.com"
+              />
+              <button class="browser-go-button">Go!</button>
+            </div>
+          </div>
+          <div class="browser-viewport">
+            <iframe
+              id="browser-frame"
+              src="https://web.archive.org/web/19990428171538/http://google.com/"
+              width="100%"
+              height="100%"
+            ></iframe>
+            <div class="browser-loading">
+              Generating website...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="window resizable" id="notepad">
+        <div class="window-titlebar">
+          <span class="window-title">GemNotes</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div class="window-content">
+          <div class="notepad-menu">
+            <button class="notepad-story-button">Generate Story</button>
+          </div>
+          <textarea
+            class="notepad-textarea"
+            style="
+              width: 100%;
+              height: calc(100% - 30px);
+              border: none;
+              outline: none;
+              resize: none;
+              background-color: white;
+              border: 1px solid #808080;
+            "
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="window resizable" id="paint">
+        <div class="window-titlebar">
+          <span class="window-title">GemPaint</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div
+          class="window-content"
+          style="
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+            background-color: #c0c0c0;
+          "
+        >
+          <!-- Add Paint Toolbar -->
+          <div class="paint-toolbar">
+            <div class="paint-colors">
+              <button
+                class="paint-color-swatch"
+                data-color="black"
+                style="background-color: black"
+              ></button>
+              <button
+                class="paint-color-swatch"
+                data-color="red"
+                style="background-color: red"
+              ></button>
+              <button
+                class="paint-color-swatch"
+                data-color="blue"
+                style="background-color: blue"
+              ></button>
+              <button
+                class="paint-color-swatch"
+                data-color="green"
+                style="background-color: green"
+              ></button>
+              <button
+                class="paint-color-swatch"
+                data-color="yellow"
+                style="background-color: yellow"
+              ></button>
+              <button class="paint-color-swatch" data-color="white" style="background-color: white">
+                E
+              </button>
+              <!-- Eraser -->
+            </div>
+            <div class="paint-brush-sizes">
+              <button class="paint-size-button" data-size="2">S</button>
+              <button class="paint-size-button" data-size="5">M</button>
+              <button class="paint-size-button" data-size="10">L</button>
+            </div>
+            <button class="paint-clear-button">Clear</button>
+          </div>
+          <!-- Add Canvas -->
+          <canvas
+            id="paint-canvas"
+            style="flex-grow: 1; background-color: white; cursor: crosshair; display: block"
+          ></canvas>
+          <!-- Note: Canvas width/height will be set dynamically in JS -->
+        </div>
+      </div>
+
+      <!-- Doom Window -->
+      <div class="window resizable" id="doom">
+        <div class="window-titlebar">
+          <span class="window-title">Doom II</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div class="window-content" id="doom-content">
+          <!-- iframe will be inserted here via JS -->
+        </div>
+      </div>
+
+      <!-- Gemini Chat Window -->
+      <div class="window resizable" id="gemini">
+        <div class="window-titlebar">
+          <span class="window-title">Gemini Chat</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div class="window-content gemini-chat-content">
+          <div class="gemini-chat-history">
+            <!-- Chat messages will appear here -->
+          </div>
+          <div class="gemini-chat-input-area">
+            <input type="text" class="gemini-chat-input" placeholder="Type your message..." />
+            <button class="gemini-chat-send">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- >>> Add Minesweeper Window <<< -->
+      <div class="window resizable" id="minesweeper" style="width: 400px; height: 450px">
+        <!-- Adjusted default size -->
+        <div class="window-titlebar">
+          <span class="window-title">GemSweeper</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div
+          class="window-content minesweeper-content"
+          style="
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+            background-color: #c0c0c0;
+          "
+        >
+          <!-- Remove iframe -->
+          <!-- Add Minesweeper Controls -->
+          <div class="minesweeper-controls">
+            <div class="minesweeper-info minesweeper-flag-count">🚩 10</div>
+            <button class="minesweeper-reset-button">🙂</button>
+            <div class="minesweeper-info minesweeper-timer">⏱️ 0</div>
+          </div>
+          <!-- Add Hint Button and Commentary Area -->
+          <div class="minesweeper-hint-area">
+            <button class="minesweeper-hint-button">💡 Hint</button>
+            <div class="minesweeper-commentary">Let's play! Click a square to start.</div>
+          </div>
+          <!-- Add Minesweeper Grid Container -->
+          <div class="minesweeper-grid-container">
+            <div class="minesweeper-grid" id="minesweeper-board">
+              <!-- Grid cells will be generated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- >>> Add Generic Image Viewer Window <<< -->
+      <div class="window resizable" id="imageViewer" style="width: 350px; height: 300px">
+        <div class="window-titlebar">
+          <span class="window-title" id="image-viewer-title">Image Viewer</span>
+          <div class="window-controls">
+            <div class="window-minimize window-control-button">−</div>
+            <div class="window-close window-control-button">✕</div>
+          </div>
+        </div>
+        <div
+          class="window-content image-viewer-content"
+          style="
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #808080;
+          "
+        >
+          <img
+            id="image-viewer-img"
+            src=""
+            alt="Image"
+            style="max-width: 100%; max-height: 100%; object-fit: contain"
+          />
+        </div>
+      </div>
+
+      <!-- Start Menu -->
+      <div class="start-menu" id="start-menu">
+        <div class="start-menu-item" data-app="myComputer">My Gemtop</div>
+        <div class="start-menu-item" data-app="chrome">Chrome</div>
+        <div class="start-menu-item" data-app="notepad">GemNotes</div>
+        <div class="start-menu-item" data-app="paint">GemPaint</div>
+        <div class="start-menu-item" data-app="doom">Doom II</div>
+        <div class="start-menu-item" data-app="gemini">Gemini Chat</div>
+        <!-- >>> Add Minesweeper to Start Menu <<< -->
+        <div class="start-menu-item" data-app="minesweeper">GemSweeper</div>
+      </div>
+
+      <!-- Taskbar -->
+      <div id="taskbar">
+        <button id="start-button">
+          <img
+            src="https://storage.googleapis.com/gemini-95-icons/start-gemini.png"
+            alt="Start"
+            style="width: 80px; height: 70px"
+          />
+        </button>
+        <div id="taskbar-apps">
+          <!-- Taskbar buttons will be added here by JS/TS -->
+        </div>
+      </div>
+
+      <!-- >>> Paint Assistant <<< -->
+      <div id="paint-assistant">
+        <div class="assistant-bubble">Thinking...</div>
+        <img
+          src="https://storage.googleapis.com/gemini-95-icons/robot-assistant.gif"
+          alt="Paint Assistant"
+          class="assistant-image"
+        />
+      </div>
+    </div>
+    <!-- End of Desktop -->
+  </body>
+</html>

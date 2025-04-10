@@ -1,0 +1,166 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+
+:root {
+  --Neutral-00: #000;
+  --Neutral-5: #181a1b;
+  --Neutral-10: #1c1f21;
+  --Neutral-20: #2a2f31;
+  --Neutral-30: #404547;
+  --Neutral-40: #575c5f;
+  --Neutral-80: #c3c6c7;
+  --Neutral-99: #fdfcfb;
+  --Neutral-100: #fff;
+  --Blue-400: #80bbff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-variant-ligatures: none;
+}
+
+:root,
+html,
+body {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+#map {
+  height: 100vh;
+}
+
+#embed-map {
+  width: 100%;
+  height: 100%;
+}
+
+#caption {
+  position: absolute;
+  left: 50%;
+  bottom: 160px;
+  transform: translate(-50%, 0);
+  display: flex;
+  max-width: min(1000px, calc(100% - 200px));
+  padding: 6px 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-radius: 2px;
+  background: var(--Neutral-00, #000);
+  color: var(--Neutral-100, #fff);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  text-align: justify;
+  font-family: "Space Mono";
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 22px; /* 157.143% */
+  letter-spacing: -0.14px;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+#presets-container {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: 100%;
+  max-width: min(1000px, calc(100% - 200px));
+  bottom: 16px;
+  display: inline-flex;
+  padding: 14px 12px 12px 12px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  border-radius: 14px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  background: var(--Neutral-5, #181a1b);
+  z-index: 100;
+}
+
+#take-me-somewhere {
+  color: var(--Neutral-100, #fff);
+  font-family: "Space Mono";
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: -0.14px;
+  width: 100%;
+}
+
+#presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: stretch;
+  flex-wrap: wrap;
+  overflow: hidden;
+  height: 62px;
+}
+
+button {
+  color: var(--Neutral-100, #fff);
+  font-family: "Space Mono";
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 184.615% */
+  letter-spacing: -0.13px;
+  display: inline-flex;
+  padding: 18px 15px 18px 14px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--Neutral-40, #575c5f);
+  background: var(--Neutral-10, #1c1f21);
+  text-wrap: nowrap;
+  flex: 1;
+}
+
+button:hover {
+  border-radius: 8px;
+  border: 1px solid var(--Blue-400, #80bbff);
+  background: var(--Neutral-20, #2a2f31);
+}
+
+button:active {
+  border-radius: 8px;
+  border: 1px solid var(--Neutral-00, #000);
+  background: var(--Neutral-00, #000);
+}
+
+/* Light Theme */
+[data-theme="light"] #caption {
+  background: var(--Neutral-100, #fff);
+  color: var(--Neutral-00, #000);
+}
+
+[data-theme="light"] #presets-container {
+  background: var(--Neutral-99, #fdfcfb);
+}
+
+[data-theme="light"] #take-me-somewhere {
+  color: var(--Neutral-00, #000);
+}
+
+[data-theme="light"] button {
+  color: var(--Neutral-00, #000);
+  border: 1px solid var(--Neutral-80, #c3c6c7);
+  background: var(--Neutral-100, #fff);
+}
+
+[data-theme="light"] button:hover {
+  background: var(--Neutral-80, #c3c6c7);
+}
+
+[data-theme="light"] button:active {
+  border: 1px solid var(--Neutral-80, #c3c6c7);
+  background: var(--Neutral-80, #c3c6c7);
+}

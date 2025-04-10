@@ -1,0 +1,53 @@
+<script type="importmap">
+  {
+    "imports": {
+      "@google/genai": "https://esm.sh/@google/genai@^0.7.0",
+      "gifenc": "https://cdn.jsdelivr.net/npm/gifenc@^1.0.3/+esm"
+    }
+  }
+</script>
+<div class="app-container">
+  <header>
+    <h1>Magical GIF Maker</h1>
+    <p>Turn your ideas into fun animated doodles</p>
+  </header>
+
+  <div class="input-container">
+    <div class="input-field">
+      <i class="fas fa-wand-magic-sparkles input-icon"></i>
+      <input
+        type="text"
+        id="prompt-input"
+        value="a shiba inu eating ice-cream"
+        placeholder="Describe your animation..."
+      />
+    </div>
+    <button id="generate-button" class="generate-button">
+      <span>Generate Magic</span>
+      <i class="fas fa-sparkles"></i>
+    </button>
+  </div>
+
+  <div class="generation-container">
+    <div class="tabs">
+      <button class="tab-button active" data-tab="frames">Frames</button>
+      <button class="tab-button" data-tab="output">Output</button>
+    </div>
+
+    <div class="tab-content active" id="frames-content">
+      <div class="frames-container" id="frames-container">
+        <!-- Frames will appear here -->
+      </div>
+    </div>
+
+    <div class="tab-content" id="output-content">
+      <div class="result-container" id="result-container">
+        <!-- Final GIF will appear here -->
+      </div>
+    </div>
+  </div>
+
+  <div class="status-container">
+    <div class="status-display" id="status-display"></div>
+  </div>
+</div>

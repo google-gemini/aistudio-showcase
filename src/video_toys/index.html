@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Video Toys</title>
+<meta name="author" content="Aaron Wade">
+<link rel="author" href="https://github.com/aaron-wade">
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai",
+    "@google/genai/": "https://esm.sh/@google/genai/",
+    "@monaco-editor/react": "https://esm.sh/@monaco-editor/react",
+    "@monaco-editor/react/": "https://esm.sh/@monaco-editor/react/",
+    "googleapis": "https://esm.sh/googleapis",
+    "googleapis/": "https://esm.sh/googleapis/",
+    "normalize.css": "https://esm.sh/normalize.css",
+    "normalize.css/": "https://esm.sh/normalize.css/",
+    "react": "https://esm.sh/react",
+    "react/": "https://esm.sh/react/",
+    "react-dom": "https://esm.sh/react-dom",
+    "react-dom/": "https://esm.sh/react-dom/",
+    "react-tabs": "https://esm.sh/react-tabs",
+    "react-tabs/": "https://esm.sh/react-tabs/"
+  }
+}
+</script>
+<script type="application/javascript">
+    if (window.location.hostname === 'localhost') {
+        let GEMINI_API_KEY = localStorage.getItem("GEMINI_API_KEY");
+        if (!GEMINI_API_KEY) {
+            GEMINI_API_KEY = prompt("Please enter your API key from AI Studio:");
+            if (GEMINI_API_KEY) {
+                localStorage.setItem("GEMINI_API_KEY", GEMINI_API_KEY);
+            }
+        }
+        globalThis.process = {env:{GEMINI_API_KEY: GEMINI_API_KEY}};
+    }
+</script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="module" src="index.js"></script>
+    <link rel="stylesheet" href="index.css"/>
+    <style type="text/tailwindcss">
+    </style>
+</body>

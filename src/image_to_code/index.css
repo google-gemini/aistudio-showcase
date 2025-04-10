@@ -1,0 +1,5 @@
+body {
+  color: light-dark(#171717, #ededed);
+  background: light-dark(#ffffff, #0a0a0a);
+  font-family: Arial, Helvetica, sans-serif;
+}

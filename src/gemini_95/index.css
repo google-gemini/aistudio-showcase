@@ -1,0 +1,870 @@
+/* Base styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #008080; /* Teal background */
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent scrollbars */
+  color: black;
+}
+
+/* Desktop styles */
+.desktop {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative; /* For absolute positioning of icons and windows */
+  cursor: default; /* Default desktop cursor */
+  padding-top: 10px; /* Add some space at the top */
+  padding-left: 10px;
+}
+
+/* Icon styles */
+.icon {
+  display: inline-flex; /* Use inline-flex for better layout control if needed, or keep block */
+  flex-direction: column;
+  align-items: center;
+  margin: 15px; /* Adjust margin */
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+  width: 100px; /* Give icons a fixed width for wrapping */
+  vertical-align: top; /* Align icons nicely when wrapping */
+  text-align: center;
+}
+
+.icon img {
+  width: 48px; /* Icon size */
+  height: 48px;
+  margin-bottom: 8px;
+}
+
+.icon span {
+  color: white;
+  font-size: 0.75rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Add text shadow for better visibility */
+  white-space: normal;      /* Allow text wrapping */
+  word-wrap: break-word;    /* Break long words */
+  /* overflow: hidden;      */ /* Remove overflow hiding if wrapping is desired */
+  /* text-overflow: ellipsis; */ /* Remove ellipsis */
+  max-width: 100%;         /* Allow text to use full icon width */
+  text-align: center;
+}
+
+/* Window styles */
+.window {
+  background-color: #C0C0C0; /* Window background color - Changed to match Win95 better */
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4); /* More subtle shadow */
+  position: absolute; /* Absolute positioning within the desktop */
+  top: 50px;
+  left: 100px;
+  width: 320px; /* Default width */
+  height: 240px; /* Default height */
+  display: none; /* Initially hidden */
+  flex-direction: column; /* Use flexbox for layout */
+  z-index: 10; /* Ensure windows are above desktop icons */
+  box-sizing: border-box; /* Include border in width/height */
+}
+
+.window.active {
+  display: flex; /* Show the window when active */
+  z-index: 20; /* Bring active window to the front */
+}
+
+.window.resizable {
+  resize: both; /* Enable resizing in both directions */
+  overflow: hidden; /* Hide overflow by default, content area will handle scroll */
+  min-width: 200px;  /* Set minimum width */
+  min-height: 150px; /* Set minimum height */
+}
+
+.window-titlebar {
+  background-color: #000080; /* Title bar color */
+  color: white;
+  padding: 3px 4px; /* Adjusted padding */
+  font-size: 0.8rem;
+  font-weight: bold; /* Bold title */
+  display: flex;
+  justify-content: space-between; /* Space between title and buttons */
+  align-items: center; /* Vertically center title and buttons */
+  cursor: grab; /* Show a grab cursor */
+  /* -webkit-app-region: drag; */ /* This is specific to Electron, remove for web */
+  height: 22px; /* Consistent height */
+  box-sizing: border-box;
+}
+.window-titlebar:active {
+  cursor: grabbing; /* Show a grabbing cursor */
+}
+
+.window-title {
+  margin-right: auto; /* Push title to the left */
+  margin-left: 2px;
+  white-space: nowrap;      /* Prevent text wrapping */
+  overflow: hidden;        /* Hide overflowing text */
+  text-overflow: ellipsis;  /* Add ellipsis (...) if title is too long */
+  max-width: calc(100% - 60px); /* Adjust max-width based on button size */
+}
+
+.window-controls {
+  display: flex;
+  gap: 3px; /* Space between buttons */
+}
+
+.window-control-button {
+  width: 16px; /* Button size */
+  height: 16px;
+  background-color: #C0C0C0; /* Button background */
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5); /* Inner highlight */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-family: "Times New Roman", serif; /* More classic font for symbols */
+  font-size: 0.8rem; /* Adjust font size as needed */
+  font-weight: bold;
+  line-height: 0;      /* Important for vertical centering of symbols */
+  padding: 0;          /* Reset padding */
+  color: black;
+}
+
+.window-control-button:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none; /* Remove shadow on press */
+  /* background-color: #e0e0e0; */ /* Optional: slightly darker press */
+}
+
+/* Specific Button Symbols - Use text or background images for better Win95 look */
+.window-minimize { /* Uses text symbol */ }
+/* .window-maximize { */ /* Uses text symbol - Removed as button is removed */ /* } */
+.window-close { /* Uses text symbol */ }
+
+
+.window-content {
+  padding: 2px; /* Minimal padding inside window */
+  font-size: 0.9rem;
+  flex-grow: 1; /* Allow content to fill remaining space */
+  overflow: auto; /* Add scrollbars ONLY if content overflows */
+  background-color: white; /* Standard content background */
+  border: 1px inset #808080; /* Inset border for content area */
+  margin: 2px; /* Margin around the content area */
+  position: relative; /* Needed for absolute positioned elements inside */
+}
+
+/* Specific app content styling */
+.window-content textarea { /* Style for Notepad textarea */
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: 'Courier New', Courier, monospace; /* Monospaced font for Notepad */
+  font-size: 0.9rem;
+  padding: 5px;
+  box-sizing: border-box;
+}
+.window-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block; /* Remove potential extra space below iframe */
+}
+#dosbox-container, #doom-container, #wolf3d-container {
+  width: 100%;
+  height: 100%;
+  position: relative; /* Ensure position context for child elements */
+}
+/* jsdos specific - may need adjustments based on how it renders */
+.jsdos {
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: black; /* Black background for DOS apps */
+}
+
+.jsdos canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain; /* Preserve aspect ratio */
+}
+
+#doom .window-content iframe, #wolf3d .window-content iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  background-color: black;
+}
+
+/* Gemini Chat Styles */
+.gemini-chat-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure content fills the window-content area */
+  background-color: white; /* Standard content background */
+  box-sizing: border-box;
+}
+
+.gemini-chat-history {
+  flex-grow: 1; /* Take up available space */
+  overflow-y: auto; /* Scroll for long history */
+  border: 1px inset #808080;
+  padding: 5px;
+  margin-bottom: 5px; /* Space between history and input */
+  background-color: white;
+  font-size: 0.8rem;
+}
+
+.gemini-chat-history p {
+  margin: 3px 0;
+  word-wrap: break-word;
+}
+.gemini-chat-history .user-message {
+  font-weight: bold;
+  color: blue;
+}
+.gemini-chat-history .gemini-message {
+  color: green;
+}
+.gemini-chat-history .error-message {
+  color: red;
+  font-style: italic;
+}
+
+
+.gemini-chat-input-area {
+  display: flex;
+  flex-shrink: 0; /* Prevent input area from shrinking */
+  border-top: 1px solid #808080;
+  padding-top: 5px;
+}
+
+.gemini-chat-input {
+  flex-grow: 1;
+  border: 1px solid #000000; /* Simple border */
+  padding: 3px;
+  font-size: 0.8rem;
+  margin-right: 5px; /* Space between input and button */
+  /* Mimic Win95 input */
+  background-color: white;
+  box-shadow: inset 1px 1px 1px #808080;
+}
+
+.gemini-chat-send {
+  /* Basic Win95 button style */
+  background-color: #C0C0C0;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.gemini-chat-send:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none;
+  padding: 3px 7px 1px 9px; /* Adjust padding for pressed effect */
+}
+
+/* Start Menu styles */
+.start-menu {
+  background-color: #C0C0C0;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  bottom: 36px; /* Positioned above the taskbar */
+  left: 0;
+  width: 180px; /* Adjust as needed */
+  display: none;
+  flex-direction: column;
+  z-index: 50; /* Sit on top of everything else */
+  padding: 2px; /* Small padding around items */
+}
+
+.start-menu.active {
+  display: flex;
+}
+
+.start-menu-item {
+  padding: 5px 10px 5px 25px; /* Indent text slightly */
+  font-size: 0.8rem;
+  color: black;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative; /* For potential icons or markers */
+}
+
+.start-menu-item:hover {
+  background-color: #000080;
+  color: white;
+}
+
+/* Taskbar styles */
+#taskbar {
+  background-color: #C0C0C0;
+  border-top: 2px solid #FFFFFF; /* Top highlight */
+  position: fixed; /* Fixed position at the bottom */
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 36px; /* Consistent taskbar height */
+  display: flex;
+  align-items: center;
+  padding: 3px; /* Small padding */
+  z-index: 40; /* Sit on top of desktop/windows, below start menu */
+  box-sizing: border-box;
+}
+
+#start-button {
+  background-color: #C0C0C0;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  padding: 2px 8px;
+  margin-right: 5px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  box-sizing: border-box;
+  /* Removed complex box-shadow, using borders for 3D effect */
+}
+
+#start-button:active {
+ border-top: 2px solid #000000;
+ border-left: 2px solid #000000;
+ border-right: 2px solid #FFFFFF;
+ border-bottom: 2px solid #FFFFFF;
+ padding: 3px 7px 1px 9px; /* Adjust padding to simulate press */
+}
+
+#start-button img {
+  width: 20px; /* Slightly smaller start icon */
+  height: 20px;
+}
+
+#taskbar-apps {
+  display: flex;
+  flex-grow: 1; /* Allow app area to fill space */
+  height: 100%;
+  align-items: center;
+  overflow: hidden; /* Hide overflowing taskbar buttons */
+}
+
+.taskbar-app {
+  background-color: #C0C0C0;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  padding: 2px 6px;
+  margin: 0 2px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* Limit width of taskbar button */
+  height: 28px; /* Consistent height */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  flex-shrink: 0; /* Prevent buttons from shrinking too much */
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5); /* Inner highlight */
+}
+
+.taskbar-app img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Active/Pressed taskbar button state */
+.taskbar-app.active, .taskbar-app:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  background-color: #e0e0e0; /* Slightly darker background */
+  box-shadow: none; /* Remove highlight */
+  padding: 3px 5px 1px 7px; /* Adjust padding to simulate press */
+}
+
+/* Hide Tailwind base styles if not needed */
+/* html { background-color: transparent !important; } */
+
+/* Notepad button styling */
+.notepad-menu {
+  display: flex;
+  padding: 3px;
+  background-color: #C0C0C0;
+  border-bottom: 1px solid #808080;
+  height: 30px;
+}
+
+.notepad-story-button {
+  background-color: #C0C0C0;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  height: 24px;
+}
+
+.notepad-story-button:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none;
+  padding: 3px 7px 1px 9px; /* Adjust padding for pressed effect */
+}
+
+.notepad-textarea {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+/* Browser styles */
+.browser-toolbar {
+  background-color: #C0C0C0;
+  padding: 5px;
+  border-bottom: 1px solid #808080;
+  display: flex;
+  align-items: center;
+  height: 30px;
+}
+
+.address-bar-container {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
+
+.browser-address-bar {
+  flex-grow: 1;
+  height: 22px;
+  border: 1px inset #808080;
+  background-color: white;
+  padding: 2px 5px;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 0.8rem;
+}
+
+.browser-go-button {
+  background-color: #C0C0C0;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  margin-left: 5px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.browser-go-button:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none;
+  padding: 3px 7px 1px 9px;
+}
+
+.browser-viewport {
+  position: relative;
+  height: calc(100% - 30px);
+  background-color: white;
+}
+
+.browser-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #C0C0C0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  z-index: 5;
+  display: none;
+}
+
+/* --- Paint Assistant Styles --- */
+#paint-assistant {
+  position: fixed;
+  bottom: 50px; /* Position above taskbar + some padding */
+  right: 20px;
+  width: 100px; /* Adjust size as needed */
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  align-items: center;
+  z-index: -1; /* Place behind the fill */
+  transition: opacity 0.3s ease-in-out;
+}
+
+#paint-assistant.visible {
+  display: flex;
+  z-index: 1;
+}
+
+.assistant-image {
+  width: 80px; /* Adjust image size */
+  height: auto;
+  display: block;
+}
+
+.assistant-bubble {
+  background-color: #FFFFE1; /* Light yellow, like tooltips */
+  border: 1px solid black;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-family: 'Comic Sans MS', cursive, sans-serif; /* Iconic cheesy font */
+  color: black;
+  margin-bottom: 8px;
+  position: relative;
+  box-shadow: 2px 2px 3px rgba(0,0,0,0.2);
+  max-width: 200px; /* Limit bubble width */
+  word-wrap: break-word; /* Wrap long critiques */
+  text-align: center;
+}
+
+/* Speech bubble tail */
+.assistant-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; /* Position below the bubble */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #FFFFE1; /* Match bubble background */
+}
+
+/* Adding a border effect to the tail */
+.assistant-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -10px; /* Slightly lower than the fill */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid black; /* Match bubble border */
+  z-index: -1; /* Place behind the fill */
+}
+
+/* --- Simple Paint App Styles --- */
+.paint-toolbar {
+  background-color: #C0C0C0; /* Match window bg */
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #808080; /* Separator */
+  height: 30px; /* Toolbar height */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.paint-colors, .paint-brush-sizes {
+  display: flex;
+  gap: 3px;
+  border: 1px inset #808080;
+  padding: 2px;
+}
+
+.paint-color-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid black;
+  cursor: pointer;
+  font-size: 0.7rem; /* For Eraser text */
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: black;
+  /* Add Win95 button press effect */
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+}
+
+.paint-color-swatch.active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none;
+}
+
+.paint-size-button, .paint-clear-button {
+  background-color: #C0C0C0;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  min-width: 25px;
+  text-align: center;
+}
+
+.paint-size-button.active, /* For size selection */
+.paint-size-button:active, /* For press effect */
+.paint-clear-button:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none;
+  padding: 3px 5px 1px 7px; /* Adjust padding */
+}
+
+#paint-canvas {
+  /* Style defined inline for flex-grow, background, cursor */
+  /* Width and height are set by JS */
+  border-top: 1px solid #808080; /* Separator from toolbar */
+}
+
+/* --- Minesweeper Styles --- */
+.minesweeper-content {
+  /* Styles set inline: display: flex; flex-direction: column; padding: 0; margin: 0; background-color: #C0C0C0; */
+}
+
+.minesweeper-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  background-color: #C0C0C0; /* Match window background */
+  border-bottom: 2px solid #808080; /* 3D sunken effect */
+  border-right: 2px solid #808080;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  margin: 5px;
+}
+
+.minesweeper-info {
+  background-color: black;
+  color: red;
+  font-family: 'Courier New', Courier, monospace; /* Digital-like font */
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 2px 5px;
+  border: 1px inset #808080;
+  min-width: 60px; /* Ensure minimum width */
+  text-align: center;
+}
+
+.minesweeper-reset-button {
+  width: 30px;
+  height: 30px;
+  font-size: 1.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Win95 button style */
+  background-color: #C0C0C0;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #000000;
+  border-bottom: 2px solid #000000;
+  cursor: pointer;
+}
+
+.minesweeper-reset-button:active {
+  border-top: 2px solid #000000;
+  border-left: 2px solid #000000;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+}
+
+.minesweeper-grid-container {
+  flex-grow: 1; /* Take remaining space */
+  padding: 5px; /* Space around the grid */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px inset #808080; /* Sunken border for grid area */
+  margin: 0 5px 5px 5px; /* Margin below controls */
+  overflow: auto; /* Add scroll if grid is too large */
+}
+
+.minesweeper-grid {
+  display: grid;
+  /* Grid columns/rows set by JS */
+  border: 1px solid #808080; /* Grid border */
+}
+
+.minesweeper-cell {
+  width: 20px; /* Cell size */
+  height: 20px;
+  background-color: #C0C0C0; /* Default hidden cell color */
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+}
+
+.minesweeper-cell.revealed {
+  background-color: #BDBDBD; /* Slightly darker revealed background */
+  border: 1px solid #808080; /* Flat border */
+  cursor: default;
+}
+
+.minesweeper-cell.mine {
+  /* background-color: red; */ /* Optional: Reveal mine color */
+}
+
+.minesweeper-cell.exploded {
+  background-color: red;
+}
+
+/* Number colors */
+.minesweeper-cell[data-number="1"] { color: blue; }
+.minesweeper-cell[data-number="2"] { color: green; }
+.minesweeper-cell[data-number="3"] { color: red; }
+.minesweeper-cell[data-number="4"] { color: #000080; } /* Dark blue */
+.minesweeper-cell[data-number="5"] { color: #800000; } /* Maroon */
+.minesweeper-cell[data-number="6"] { color: #008080; } /* Teal */
+.minesweeper-cell[data-number="7"] { color: black; }
+.minesweeper-cell[data-number="8"] { color: gray; }
+
+/* --- Minesweeper Hint Styles --- */
+.minesweeper-hint-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Puts button on left, text on right */
+  padding: 0 8px 5px 8px; /* Padding around hint area */
+  background-color: #C0C0C0;
+}
+
+.minesweeper-hint-button {
+  /* Basic Win95 button style */
+  background-color: #C0C0C0;
+  border-top: 1px solid #FFFFFF;
+  border-left: 1px solid #FFFFFF;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.5);
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  height: 24px;
+}
+
+.minesweeper-hint-button:active {
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: none;
+  padding: 3px 7px 1px 9px; /* Adjust padding for pressed effect */
+}
+
+.minesweeper-commentary {
+  font-size: 0.75rem;
+  font-family: 'Comic Sans MS', cursive, sans-serif; /* Cheesy assistant font */
+  color: #000080; /* Dark blue text */
+  text-align: right;
+  flex-grow: 1;
+  margin-left: 10px;
+  height: auto; /* Allow height to adjust based on content */
+  min-height: 24px; /* Maintain minimum height similar to button */
+  line-height: 1.3; /* Adjust line-height for multi-line text */
+  /* Remove properties preventing wrapping */
+  /* overflow: hidden; */
+  /* white-space: nowrap; */
+  /* text-overflow: ellipsis; */
+  word-wrap: break-word; /* Ensure long words wrap */
+}
+
+/* --- Icons Inside Windows --- */
+.window-icon {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px; /* Smaller icons inside windows */
+  padding: 10px;
+  margin: 5px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: top;
+}
+
+.window-icon:hover {
+  background-color: #000080; /* Highlight selection - Win95 style */
+  color: white;
+}
+
+.window-icon:hover span {
+  background-color: #000080;
+  color: white;
+}
+
+.window-icon img {
+  width: 32px; /* Smaller image */
+  height: 32px;
+  margin-bottom: 5px;
+}
+
+.window-icon span {
+  font-size: 0.7rem;
+  color: black;
+  max-height: 2.4em; /* Limit height for 2 lines */
+  overflow: hidden;
+  line-height: 1.2em;
+}

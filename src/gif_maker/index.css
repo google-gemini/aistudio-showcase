@@ -1,0 +1,400 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
+:root {
+  --primary-color: light-dark(#8a2be2, #a960ff); /* Slightly lighter purple for dark */
+  --primary-light: light-dark(#b088e2, #c8a1ff);
+  --primary-dark: light-dark(#5a1a9e, #7b3acb);
+  --text-color: light-dark(#333, #f0f0f0); /* Light gray for dark text */
+  --background-color: light-dark(#f8f9fc, #121212); /* Standard dark background */
+  --card-color: light-dark(#ffffff, #1e1e1e); /* Slightly lighter dark for cards */
+  --accent-color: light-dark(#ff7bac, #ff9ccd); /* Lighter pink for dark */
+  --input-background: light-dark(#f5f5fd, #333);
+  --animation-time: 0.5s;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  background-color: var(--background-color);
+  background-image: radial-gradient(#e6e6fa 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--text-color);
+  line-height: 1.6;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 800px;
+  background: var(--card-color);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  color: var(--text-color);
+  position: relative;
+  display: inline-block;
+}
+
+.magic-text {
+  background: linear-gradient(45deg, #ff7bac, #8a2be2, #4b0082);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+}
+
+.magic-text::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 3px;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg, #ff7bac, #8a2be2, #4b0082);
+  border-radius: 10px;
+}
+
+header p {
+  color: #666;
+  font-size: 1.1em;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.input-field {
+  display: flex;
+  align-items: center;
+  background-color: var(--input-background);
+  border-radius: 12px;
+  padding: 0 15px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.input-field:focus-within {
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05), 0 0 0 2px var(--primary-light);
+}
+
+.input-icon {
+  color: var(--primary-color);
+  font-size: 1.2em;
+  margin-right: 10px;
+}
+
+#prompt-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 15px 0;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.generate-button {
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.generate-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+}
+
+.generate-button:active {
+  transform: translateY(1px);
+}
+
+.generate-button i {
+  font-size: 1.1em;
+}
+
+.generate-button.loading {
+  background: #888;
+  pointer-events: none;
+}
+
+.generation-container {
+  background-color: var(--input-background);
+  border-radius: 15px;
+  padding: 20px;
+  min-height: 300px;
+  position: relative;
+}
+
+.status-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.status-text {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: var(--input-background);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--input-background);
+}
+
+.tab-button {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.tab-button::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--primary-color);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+}
+
+.tab-button.active::after {
+  transform: scaleX(1);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.frames-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.frame {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 120px;
+  height: 120px;
+  background-color: #fff;
+  opacity: 0;
+  transform: scale(0.8) translateY(20px);
+  transition: all var(--animation-time) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.frame.appear {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.frame-number {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 10px;
+  z-index: 2;
+}
+
+.result-container {
+  display: none; /* Initially hidden, will be controlled by tab logic */
+  justify-content: center;
+  align-items: center;
+  margin-top: 0; /* Reset margin as it's inside tab content now */
+  min-height: 300px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative; /* Needed for absolute positioning of download button */
+}
+
+.result-container.appear {
+  display: flex; /* Use flex when it appears to center content */
+  opacity: 1;
+  transform: scale(1);
+}
+
+.result-container img {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.download-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.download-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Magic sparkle animations */
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.sparkle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M10 0L13 7L20 10L13 13L10 20L7 13L0 10L7 7L10 0Z' fill='%238a2be2'/%3E%3C/svg%3E");
+  background-size: contain;
+  pointer-events: none;
+  z-index: 10;
+  animation: sparkle 0.8s forwards;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loading-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+.status-container {
+  padding-top: 1em;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+
+  .frames-container {
+    gap: 10px;
+  }
+
+  .frame {
+    width: 100px;
+    height: 100px;
+  }
+}

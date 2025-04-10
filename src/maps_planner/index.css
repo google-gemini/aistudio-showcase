@@ -1,0 +1,761 @@
+@import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css);
+
+/* Global reset and base font styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+    'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Styles for the main map container which holds the map and other UI elements */
+.map-container {
+  color: black;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  transition: width 0.3s ease, left 0.3s ease;
+  overflow: hidden;
+}
+
+/* Style applied when the timeline panel is visible on larger screens, shifting the map */
+.map-container-shifted {
+  width: calc(100% - 320px);
+  left: 0;
+}
+
+/* The div where the Google Map will be rendered */
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+/* Styles for the Day Planner Mode Toggle Switch */
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 4px 12px 4px 4px;
+  background: rgba(0, 0, 0, .25);
+  display: flex;
+  flex-direction: row;
+  width: max-content;
+  border-radius: 100px;
+}
+
+.mode-label {
+  margin-left: 10px;
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: .4s;
+  backdrop-filter: blur(4px);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Styles for the timeline panel used in Day Planner mode */
+.timeline-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Ensure timeline is above other elements */
+  overflow: hidden;
+  display: none; /* Initially hidden */
+  transition: transform 0.3s ease;
+}
+
+/* Styles for the header within the timeline panel */
+.timeline-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eeeeee;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 2;
+}
+
+.timeline-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.timeline-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.export-button, .close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.export-button:hover, .close-button:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Container for individual timeline entries */
+.timeline {
+  padding: 0 16px 16px;
+  overflow-y: auto;
+  height: calc(100% - 64px);
+}
+
+/* Button to toggle the timeline panel visibility on smaller screens */
+.timeline-toggle {
+  position: absolute;
+  top: 50%;
+  left: -40px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background-color: white;
+  border-radius: 8px 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-right: none;
+  display: none; /* Only shown on smaller screens via media query */
+}
+
+/* Semi-transparent overlay shown behind the timeline on mobile to dim the map */
+.map-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9; /* Below timeline but above map */
+  display: none;
+}
+
+.map-overlay.visible {
+  display: block;
+}
+
+/* Individual item within the timeline */
+.timeline-item {
+  display: flex;
+  margin: 16px 0;
+  position: relative;
+}
+
+.timeline-time {
+  flex: 0 0 80px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  text-align: right;
+  padding-right: 16px;
+  padding-top: 2px;
+}
+
+.timeline-connector {
+  flex: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #2196F3;
+  z-index: 1;
+  margin-top: 4px;
+}
+
+.timeline-line {
+  width: 2px;
+  flex-grow: 1;
+  background-color: #d1d1d1;
+  position: absolute;
+  top: 16px;
+  bottom: -16px;
+  left: 89px;
+  z-index: 0;
+}
+
+.timeline-item:last-child .timeline-line {
+  display: none;
+}
+
+.timeline-content {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.timeline-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-content.active {
+  border-left: 3px solid #2196F3;
+}
+
+.timeline-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.timeline-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.timeline-duration {
+  display: inline-block;
+  font-size: 11px;
+  color: #2196F3;
+  background-color: #e3f2fd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* Specific styles for location cards when in day planner mode */
+.location-card.day-planner-card {
+  position: relative;
+}
+
+.card-time-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.card-sequence-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #2196F3;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.card-duration {
+  display: inline-block;
+  font-size: 11px;
+  color: #2196F3;
+  background-color: #e3f2fd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+/* Styling for the route lines on the map in day planner mode */
+.day-plan-route {
+  stroke: #2196F3;
+  stroke-width: 4;
+  stroke-opacity: 0.8;
+  stroke-dasharray: 5, 5;
+  animation: dash 20s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 1000;
+  }
+}
+
+/* Styles for the search input area at the top of the map */
+.search-container {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 90%;
+  max-width: 600px;
+
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 24px;
+  padding: 8px 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.3s;
+}
+
+.search-bar:focus-within {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.search-icon {
+  color: #717171;
+  margin-right: 12px;
+}
+
+#prompt-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  resize: none;
+  height: 24px;
+  line-height: 24px;
+  background: transparent;
+  color: black;
+}
+
+.search-button {
+  background-color: #282828;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 12px;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.search-button:hover {
+  background-color: #282828;
+}
+
+.search-button.loading {
+  pointer-events: none;
+  background-color: #5b5b5b;
+}
+
+.search-button .fa-arrow-right {
+  transition: opacity 0.2s;
+}
+
+.search-button.loading .fa-arrow-right {
+  opacity: 0;
+}
+
+.search-button .spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.search-button.loading .spinner {
+  opacity: 1;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Styles for the carousel displaying location cards at the bottom */
+.card-carousel {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 90%;
+  max-width: 900px;
+  display: none; /* Hidden until locations are loaded */
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+/* Adjust carousel width when timeline is visible */
+.map-container-shifted .card-carousel {
+  width: 90%;
+  max-width: 800px;
+}
+
+.card-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  padding: 12px;
+  border-radius: 16px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+.card-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for a cleaner look */
+}
+
+/* Fade effect at the edges of the card carousel for better visual integration */
+/* We will use mask-image now so these are not needed */
+/*
+.card-container::before,
+.card-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 60px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.card-container::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.15), transparent);
+}
+
+.card-container::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.15), transparent);
+}
+*/
+
+/* Individual location card styles */
+.location-card {
+  flex: 0 0 auto;
+  width: 220px;
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  margin-right: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.location-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+}
+
+.card-active {
+  border: 2px solid #2196F3;
+}
+
+.card-image {
+  height: 120px;
+  background-color: #f5f5f5;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.location-card:hover .card-image {
+  transform: scale(1.05);
+}
+
+.card-image::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+}
+
+.card-content {
+  padding: 12px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #222222;
+}
+
+.card-description {
+  font-size: 12px;
+  color: #717171;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
+}
+
+.card-coordinates {
+  font-size: 10px;
+  color: #999;
+}
+
+/* Controls for navigating the card carousel (arrows and dots) */
+.carousel-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.carousel-arrow {
+  background-color: white;
+  border: 1px solid #DDDDDD;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #222222;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.carousel-arrow:hover {
+  background-color: #F7F7F7;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-indicators {
+  display: flex;
+  margin: 0 16px;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #DDDDDD;
+  margin: 0 4px;
+  transition: background-color 0.2s;
+}
+
+.carousel-dot.active {
+  background-color: #222222;
+}
+
+/* Button to reset the map and clear current locations/routes */
+.reset-button {
+  color: black;
+  position: absolute;
+  bottom: 32px;
+  left: 16px;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid #DDDDDD;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s, box-shadow 0.2s, left 0.3s ease;
+}
+
+.reset-button:hover {
+  background-color: #F7F7F7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Adjustments for smaller screens (tablets and phones) */
+@media (max-width: 768px) {
+  .search-container {
+    width: 90%;
+  }
+
+  .location-card {
+    width: 180px;
+  }
+
+  .card-image {
+    height: 100px;
+  }
+
+  .timeline-container {
+    transform: translateX(100%);
+    width: 85%;
+  }
+
+  .timeline-container.visible {
+    transform: translateX(0);
+  }
+
+  .map-container-shifted {
+    width: 100%; /* Map doesn't resize on mobile when timeline is open */
+    left: 0;
+  }
+
+  .map-container-shifted .search-container {
+    left: 50%; /* Keep search centered */
+    width: 90%;
+  }
+
+  .timeline-toggle {
+    display: flex; /* Show toggle button for timeline */
+  }
+}
+
+.popup-bubble {
+  display: none;
+}
+
+/* Spinner styles */
+.spinner {
+  pointer-events: none;
+  opacity: 1;
+  position: absolute;
+  left: calc(50% - 25px);
+  top: calc(50% - 25px);
+  width: 50px; /* Spinner size */
+  height: 50px; /* Spinner size */
+  border: 5px solid rgba(0, 0, 0, 0.1); /* Light grey track */
+  border-top-color: #3498db; /* Blue color for the spinning part */
+  border-radius: 50%; /* Makes it circular */
+  animation: spin 1s linear infinite; /* Apply the spin animation */
+  transition: opacity 1s ease-in-out;
+
+  &.hidden {
+    opacity: 0;
+  }
+}
+
+.error {
+  color: red;
+  padding: 1em 0;
+}
+
+/* Keyframes for the spinning animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg); /* Start rotation */
+  }
+  100% {
+    transform: rotate(360deg); /* Complete one full rotation */
+  }
+}
