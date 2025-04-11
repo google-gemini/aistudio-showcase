@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* tslint:disable */
 import {html, LitElement} from 'lit';
 import {customElement, query, state} from 'lit/decorators.js';

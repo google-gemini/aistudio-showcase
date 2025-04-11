@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* tslint:disable */
 import {ContentUnion, GoogleGenAI, Modality} from '@google/genai';
 import {LoaderCircle, SendHorizontal, Trash2, X} from 'lucide-react';

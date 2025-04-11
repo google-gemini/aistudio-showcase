@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 body {
   color: light-dark(#171717, #ededed);
   background: light-dark(#ffffff, #0a0a0a);

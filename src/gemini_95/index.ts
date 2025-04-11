@@ -1,7 +1,9 @@
 /**
  * @license
+ * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
-*/
+ */
+
 import '@tailwindcss/browser';
 
 //Gemini 95 was fully vibe-coded by @ammaar and @olacombe, while we don't endorse code quality, we thought it was a fun demonstration of what's possible with the model when a Designer and PM jam.
