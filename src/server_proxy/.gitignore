@@ -1,0 +1,41 @@
+# Node.js dependencies
+node_modules/
+
+# Vite build output
+dist/
+.vite/
+.next/ # If using Next.js
+.output/ # If using Nuxt 3
+
+# Node.js server specific
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.envrc
+
+# TypeScript cache files
+*.tsbuildinfo
+
+# IDE/Editor directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
