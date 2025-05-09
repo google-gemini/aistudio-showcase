@@ -13,14 +13,14 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 const externalApiBaseUrl = 'https://generativelanguage.googleapis.com'; // Gemini API Endpoint
-const apiKey = process.env.API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
 
 const staticPath = path.join(__dirname,'dist')
 const publicPath = path.join(__dirname,'public')
 
 if (!apiKey) {
     // Only log an error, don't exit. The server will serve apps without proxy functionality
-    console.error("Warning: API_KEY environment variable is not set! Proxy functionality will be disabled.");
+    console.error("Warning: GEMINI_API_KEY or API_KEY environment variable is not set! Proxy functionality will be disabled.");
 }
 
 // Middleware to parse JSON request bodies
