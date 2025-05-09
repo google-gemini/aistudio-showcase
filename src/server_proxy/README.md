@@ -17,7 +17,8 @@ This nodejs proxy server lets you run your AI Studio Gemini application unmodifi
      ``` 
 
 3.  Deploy to Cloud Run (optionally including API key):
-    `gcloud run deploy my-app --source=. --base-image=nodejs22 --update-secrets=GEMINI_API_KEY=gemini_api_key:latest`
-
+    ```
+    gcloud run deploy my-app --source=. --base-image=nodejs22 --update-secrets=GEMINI_API_KEY=gemini_api_key:latest
+    ```
 
 
