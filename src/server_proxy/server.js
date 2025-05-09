@@ -19,7 +19,7 @@ const staticPath = path.join(__dirname,'dist')
 const publicPath = path.join(__dirname,'public')
 
 if (!apiKey) {
-    // Only log an error, don't exit. The server will serve a placeholder page with a warning.
+    // Only log an error, don't exit. The server will serve apps without proxy functionality
     console.error("Warning: API_KEY environment variable is not set! Proxy functionality will be disabled.");
 }
 
@@ -98,42 +98,20 @@ if ('serviceWorker' in navigator) {
 app.get('/', (req, res) => {
     const placeholderPath = path.join(publicPath, 'placeholder.html');
 
-    // If API key is missing, always serve placeholder with a warning
-    if (!apiKey) {
-        console.log("LOG: Route '/' accessed. API_KEY missing. Serving placeholder with warning.");
-        fs.readFile(placeholderPath, 'utf8', (err, placeholderHtml) => {
-            if (err) {
-                console.error(`ERROR: Could not read placeholder file at ${placeholderPath}:`, err);
-                return res.status(500).send('Server error: Could not load placeholder page.');
-            }
-            const warningMessage = '<p style="color: red; font-weight: bold; text-align: center;">Warning: Gemini API_KEY is not configured as an environment variable. Your Gemini app is unavailable until you\'ve deployed your API key to the server.</p>';
-            // Inject warning message before the closing </head> tag or append if not found
-             let modifiedHtml;
-             const messageDivEnd = '</h2>';
-             if (placeholderHtml.includes(messageDivEnd)) {
-                 modifiedHtml = placeholderHtml.replace(messageDivEnd, messageDivEnd + warningMessage);
-             } else {
-                 // Fallback: append if the target div isn't found
-                 modifiedHtml = placeholderHtml + warningMessage;
-             }
-            res.send(modifiedHtml);
-        });
-        return; // Stop further processing
-    }
-
-    // API key is present, try to serve index.html
-    console.log("LOG: Route '/' accessed. API_KEY found. Attempting to serve index.html.");
+    // Try to serve index.html
+    console.log("LOG: Route '/' accessed. Attempting to serve index.html.");
     const indexPath = path.join(staticPath, 'index.html');
-    console.log(`LOG: Reading index.html from: ${indexPath}`);
 
     fs.readFile(indexPath, 'utf8', (err, indexHtmlData) => {
         if (err) {
             // index.html not found or unreadable, serve the original placeholder
             console.log('LOG: index.html not found or unreadable. Falling back to original placeholder.');
             return res.sendFile(placeholderPath);
+        } else if (!apiKey) {
+          return res.sendFile(IndexPath);
         }
 
-        // index.html found, inject service worker script
+        // index.html found and apiKey set, inject service worker script
         console.log("LOG: index.html read successfully. Injecting service worker script.");
         let injectedHtml;
         if (indexHtmlData.includes('<head>')) {
