@@ -108,7 +108,7 @@ app.get('/', (req, res) => {
             console.log('LOG: index.html not found or unreadable. Falling back to original placeholder.');
             return res.sendFile(placeholderPath);
         } else if (!apiKey) {
-          return res.sendFile(IndexPath);
+          return res.sendFile(indexPath);
         }
 
         // index.html found and apiKey set, inject service worker script
