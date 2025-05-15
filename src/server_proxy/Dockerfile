@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy all files from the current directory
 COPY . ./
-RUN echo "API_KEY=PLACEHOLDER" >> ./.env
+RUN echo "API_KEY=PLACEHOLDER" > ./.env
 RUN echo "GEMINI_API_KEY=PLACEHOLDER" >> ./.env
 
 # Install server dependencies
