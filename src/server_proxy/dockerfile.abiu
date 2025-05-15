@@ -1,4 +1,4 @@
-
+## This dockerfile is for building and deploying with Cloud Run's automatic base image update feature.
 # Stage 1: Build the frontend, and install server dependencies
 FROM node:22 AS builder
 
@@ -20,7 +20,7 @@ RUN bash -c 'if [ -f package.json ]; then npm install && npm run build; fi'
 
 
 # Stage 2: Build the final server image
-FROM node:22
+FROM scratch
 
 WORKDIR /app
 
