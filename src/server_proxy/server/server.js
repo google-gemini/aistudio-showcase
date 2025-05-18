@@ -73,29 +73,44 @@ app.use('/api-proxy', async (req, res, next) => {
 
         outgoingHeaders['X-Goog-Api-Key'] = apiKey;
 
-        // Set Content-Type from original request if present, otherwise sensible defaults
-        if (req.headers['content-type']) {
+        // Set Content-Type from original request if present (for relevant methods)
+        if (req.headers['content-type'] && ['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
             outgoingHeaders['Content-Type'] = req.headers['content-type'];
         } else if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
-            outgoingHeaders['Content-Type'] = 'application/json'; // Default for methods with body
+            // Default Content-Type for methods that typically have a body, if not provided
+            outgoingHeaders['Content-Type'] = 'application/json';
         }
+
+        // For GET or DELETE requests, ensure Content-Type is NOT sent,
+        // even if the client erroneously included it.
+        if (['GET', 'DELETE'].includes(req.method.toUpperCase())) {
+            delete outgoingHeaders['Content-Type']; // Case-sensitive common practice
+            delete outgoingHeaders['content-type']; // Just in case
+        }
+
         // Ensure 'accept' is reasonable if not set
         if (!outgoingHeaders['accept']) {
             outgoingHeaders['accept'] = '*/*';
         }
 
 
-        const apiResponse = await axios({
+        const axiosConfig = {
             method: req.method,
             url: apiUrl,
             headers: outgoingHeaders,
-            data: req.body,
             responseType: 'stream',
-            // It's important to not let Axios throw on non-2xx status codes for streaming
             validateStatus: function (status) {
                 return true; // Accept any status code, we'll pipe it through
             },
-        });
+        };
+
+        if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
+            axiosConfig.data = req.body;
+        }
+        // For GET, DELETE, etc., axiosConfig.data will remain undefined, 
+        // and axios will not send a request body.
+
+        const apiResponse = await axios(axiosConfig);
 
         // Pass through response headers from Gemini API to the client
         for (const header in apiResponse.headers) {
