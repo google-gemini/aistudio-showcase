@@ -10,16 +10,20 @@
   const handler = {
     construct(target, args) {
       let [url, protocols] = args;
+      //stringify url's if necessary for parsing
       let newUrlString = typeof url === 'string' ? url : (url && typeof url.toString === 'function' ? url.toString() : null);
+      //get ready to check for host to proxy
       let isTarget = false;
 
       if (newUrlString) {
         try {
-          // For full URLs, parse and check the host
+          // For full URLs, parse string and check the host
           if (newUrlString.startsWith('ws://') || newUrlString.startsWith('wss://')) {
+            //URL object again
             const parsedUrl = new URL(newUrlString);
             if (parsedUrl.host === TARGET_WS_HOST) {
               isTarget = true;
+              //use wss if https, else ws
               const proxyScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
               const proxyHost = window.location.host;
               newUrlString = `${proxyScheme}://${proxyHost}/api-proxy${parsedUrl.pathname}${parsedUrl.search}`;
@@ -49,7 +53,7 @@
       // Forward static property access (e.g., WebSocket.OPEN, WebSocket.CONNECTING)
       // and prototype access to the original WebSocket constructor/prototype
       if (prop === 'prototype') {
-        return target.prototype; // Or Reflect.get(target, prop, receiver) if preferred for consistency
+        return target.prototype; 
       }
       return Reflect.get(target, prop, receiver);
     }

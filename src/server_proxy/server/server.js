@@ -10,13 +10,14 @@ const fs = require('fs');
 const axios = require('axios');
 const https = require('https');
 const path = require('path');
-const WebSocket = require('ws'); // Import WebSocket
-const { URLSearchParams, URL } = require('url'); // Import URL and URLSearchParams
+const WebSocket = require('ws'); 
+const { URLSearchParams, URL } = require('url'); 
 
 const app = express();
 const port = process.env.PORT || 3000;
-const externalApiBaseUrl = 'https://generativelanguage.googleapis.com'; // Gemini API Endpoint
-const externalWsBaseUrl = 'wss://generativelanguage.googleapis.com'; // Gemini WebSocket Endpoint
+const externalApiBaseUrl = 'https://generativelanguage.googleapis.com'; 
+const externalWsBaseUrl = 'wss://generativelanguage.googleapis.com'; 
+// Support either API key env-var variant
 const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
 
 const staticPath = path.join(__dirname,'dist')
@@ -31,7 +32,7 @@ else {
   console.log("API KEY FOUND (WebSocket proxy will use this)")
 }
 
-// Middleware to parse JSON request bodies
+// Limit body size to 50mb
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({extended: true, limit: '50mb'}));
 
@@ -47,7 +48,7 @@ app.use('/api-proxy', async (req, res, next) => {
     if (req.method === 'OPTIONS') {
         res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust as needed for security
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Goog-Api-Key'); // Add any other headers your frontend might send
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Goog-Api-Key'); 
         res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response for 1 day
         return res.sendStatus(200);
     }
@@ -57,7 +58,7 @@ app.use('/api-proxy', async (req, res, next) => {
     }
     try {
         // Construct the target URL by taking the part of the path after /api-proxy/
-        const targetPath = req.url.startsWith('/') ? req.url.substring(1) : req.url; // Remove leading slash if present
+        const targetPath = req.url.startsWith('/') ? req.url.substring(1) : req.url; 
         const apiUrl = `${externalApiBaseUrl}/${targetPath}`;
         console.log(`HTTP Proxy: Forwarding request to ${apiUrl}`);
 
@@ -65,19 +66,20 @@ app.use('/api-proxy', async (req, res, next) => {
         const outgoingHeaders = {};
         // Copy most headers from the incoming request
         for (const header in req.headers) {
-            // Exclude host-specific headers and others that might cause issues
+            // Exclude host-specific headers and others that might cause issues upstream
             if (!['host', 'connection', 'content-length', 'transfer-encoding', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'].includes(header.toLowerCase())) {
                 outgoingHeaders[header] = req.headers[header];
             }
         }
 
+        // Set the actual API key in the appropriate header
         outgoingHeaders['X-Goog-Api-Key'] = apiKey;
 
         // Set Content-Type from original request if present (for relevant methods)
         if (req.headers['content-type'] && ['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
             outgoingHeaders['Content-Type'] = req.headers['content-type'];
         } else if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
-            // Default Content-Type for methods that typically have a body, if not provided
+            // Default Content-Type to application/json if no content type for post/put/patch
             outgoingHeaders['Content-Type'] = 'application/json';
         }
 
@@ -156,8 +158,24 @@ app.use('/api-proxy', async (req, res, next) => {
 
 const webSocketInterceptorScriptTag = `<script src="/public/websocket-interceptor.js" defer></script>`;
 
-const serviceWorkerRegistrationScriptTag = `<script src="/public/service-worker-registration.js" defer></script>`; // Assuming you might move SW registration too
- // Or keep it inline: const serviceWorkerRegistrationScript = \` <script> ...your sw reg code... </script> \`;
+// Prepare service worker registration script content 
+const serviceWorkerRegistrationScript = `
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load' , () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registered successfully with scope:', registration.scope);
+      })
+      .catch(error => {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+} else {
+  console.log('Service workers are not supported in this browser.');
+}
+</script>
+`;
 
 // Serve index.html or placeholder based on API key and file availability
 app.get('/', (req, res) => {
@@ -184,24 +202,6 @@ app.get('/', (req, res) => {
         console.log("LOG: index.html read successfully. Injecting scripts.");
         let injectedHtml = indexHtmlData;
 
-        // Prepare service worker registration script content (if you keep it inline)
-        const serviceWorkerRegistrationScript = `
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load' , () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(registration => {
-        console.log('Service Worker registered successfully with scope:', registration.scope);
-      })
-      .catch(error => {
-        console.error('Service Worker registration failed:', error);
-      });
-  });
-} else {
-  console.log('Service workers are not supported in this browser.');
-}
-</script>
-`;
 
         if (injectedHtml.includes('<head>')) {
             // Inject WebSocket interceptor first, then service worker script
