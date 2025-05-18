@@ -36,6 +36,7 @@ else {
 // Limit body size to 50mb
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({extended: true, limit: '50mb'}));
+app.set('trust proxy', 1 /* number of proxies between user and server */)
 
 // Rate limiter for the proxy
 const proxyLimiter = rateLimit({
@@ -55,6 +56,7 @@ app.use('/api-proxy', proxyLimiter);
 
 // Proxy route for Gemini API calls (HTTP)
 app.use('/api-proxy', async (req, res, next) => {
+    console.log(req.ip);
     // If the request is an upgrade request, it's for WebSockets, so pass to next middleware/handler
     if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
         return next(); // Pass to the WebSocket upgrade handler
