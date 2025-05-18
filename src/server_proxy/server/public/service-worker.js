@@ -43,19 +43,26 @@ self.addEventListener('fetch', (event) => {
 
       console.log(`Service Worker: Proxying to ${proxyUrl}`);
 
+      // Simplify request options for the fetch to the proxy
+      const newHeaders = new Headers();
+      if (event.request.headers.has('Content-Type')) {
+        newHeaders.set('Content-Type', event.request.headers.get('Content-Type'));
+      }
+      // Add other essential headers like Authorization if your proxy specifically needs them,
+      // but for now, Content-Type is the most likely important one.
+
       const requestOptions = {
         method: event.request.method,
-        headers: event.request.headers,
-        body: event.request.body,
-        mode: event.request.mode,
-        credentials: event.request.credentials,
-        cache: event.request.cache,
-        redirect: event.request.redirect,
-        referrer: event.request.referrer,
-        integrity: event.request.integrity,
+        headers: newHeaders, // Use simplified headers
+        body: event.request.body, // Still use the original body stream
+        mode: 'cors', // Explicitly set mode for the request to the proxy
+        // Omitting credentials, cache, redirect, referrer, integrity for simplicity,
+        // as they might not be appropriate to pass from a cross-origin request
+        // to a same-origin proxy without careful consideration.
       };
 
-      if (event.request.method !== 'GET' && event.request.method !== 'HEAD') {
+      // Only set duplex if there's a body and it's a relevant method
+      if (event.request.method !== 'GET' && event.request.method !== 'HEAD' && event.request.body) {
         requestOptions.duplex = 'half';
       }
 
@@ -65,10 +72,10 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch((error) => {
-          console.error(`Service Worker: Error proxying request to ${proxyUrl}:`, error);
-          // This ensures the client's fetch doesn't just hang or receive a generic network error.
+          // Log more error details
+          console.error(`Service Worker: Error proxying request to ${proxyUrl}. Message: ${error.message}, Name: ${error.name}, Stack: ${error.stack}`);
           return new Response(
-            JSON.stringify({ error: 'Proxying failed', details: error.message, proxiedUrl: proxyUrl }),
+            JSON.stringify({ error: 'Proxying failed', details: error.message, name: error.name, proxiedUrl: proxyUrl }),
             {
               status: 502, // Bad Gateway is appropriate for proxy errors
               headers: { 'Content-Type': 'application/json' }
@@ -83,10 +90,11 @@ self.addEventListener('fetch', (event) => {
       event.respondWith(fetch(event.request));
     }
   } catch (error) {
-    console.error('Service Worker: Unhandled error in fetch event handler:', error);
+    // Log more error details for unhandled errors too
+    console.error('Service Worker: Unhandled error in fetch event handler. Message:', error.message, 'Name:', error.name, 'Stack:', error.stack);
     event.respondWith(
       new Response(
-        JSON.stringify({ error: 'Service worker fetch handler failed', details: error.message }),
+        JSON.stringify({ error: 'Service worker fetch handler failed', details: error.message, name: error.name }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' }
