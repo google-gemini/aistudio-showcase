@@ -43,22 +43,49 @@ self.addEventListener('fetch', (event) => {
 
       console.log(`Service Worker: Proxying to ${proxyUrl}`);
 
-      // Simplify request options for the fetch to the proxy
+      // Construct headers for the request to the proxy
       const newHeaders = new Headers();
-      if (event.request.headers.has('Content-Type')) {
-        newHeaders.set('Content-Type', event.request.headers.get('Content-Type'));
+      // Copy essential headers from the original request
+      // For OPTIONS (preflight) requests, Access-Control-Request-*  are critical.
+      // For actual requests (POST, GET), Content-Type, Accept etc.
+      const headersToCopy = [
+        'Content-Type', 
+        'Accept', 
+        'Access-Control-Request-Method', 
+        'Access-Control-Request-Headers',
+      ];
+
+      for (const headerName of headersToCopy) {
+        if (event.request.headers.has(headerName)) {
+          newHeaders.set(headerName, event.request.headers.get(headerName));
+        }
+      }
+
+      if (event.request.method === 'POST') {
+
+        // Ensure Content-Type is set for POST requests to the proxy, defaulting to application/json
+        if (!newHeaders.has('Content-Type')) {
+          console.warn("Service Worker: POST request to proxy was missing Content-Type in newHeaders. Defaulting to application/json.");
+          newHeaders.set('Content-Type', 'application/json');
+        } else {
+          console.log(`Service Worker: POST request to proxy has Content-Type: ${newHeaders.get('Content-Type')}`);
+        }
       }
 
       const requestOptions = {
         method: event.request.method,
         headers: newHeaders, // Use simplified headers
         body: event.request.body, // Still use the original body stream
-        mode: 'cors', // Explicitly set mode for the request to the proxy
-        // Omitting credentials, cache, redirect, referrer, integrity for simplicity
+        mode: event.request.mode,
+        credentials: event.request.credentials,
+        cache: event.request.cache,
+        redirect: event.request.redirect,
+        referrer: event.request.referrer,
+        integrity: event.request.integrity,
       };
 
       // Only set duplex if there's a body and it's a relevant method
-      if (event.request.method !== 'GET' && event.request.method !== 'HEAD' && event.request.body) {
+      if (event.request.method !== 'GET' && event.request.method !== 'HEAD' && event.request.body ) {
         requestOptions.duplex = 'half';
       }
 
