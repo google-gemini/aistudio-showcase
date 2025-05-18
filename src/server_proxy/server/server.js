@@ -10,78 +10,178 @@ const fs = require('fs');
 const axios = require('axios');
 const https = require('https');
 const path = require('path');
+const WebSocket = require('ws'); 
+const { URLSearchParams, URL } = require('url'); 
+const rateLimit = require('express-rate-limit');
+
 const app = express();
 const port = process.env.PORT || 3000;
-const externalApiBaseUrl = 'https://generativelanguage.googleapis.com'; // Gemini API Endpoint
+const externalApiBaseUrl = 'https://generativelanguage.googleapis.com'; 
+const externalWsBaseUrl = 'wss://generativelanguage.googleapis.com'; 
+// Support either API key env-var variant
 const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
 
 const staticPath = path.join(__dirname,'dist')
 const publicPath = path.join(__dirname,'public')
 
+
 if (!apiKey) {
     // Only log an error, don't exit. The server will serve apps without proxy functionality
     console.error("Warning: GEMINI_API_KEY or API_KEY environment variable is not set! Proxy functionality will be disabled.");
 }
+else {
+  console.log("API KEY FOUND (proxy will use this)")
+}
 
-// Middleware to parse JSON request bodies
+// Limit body size to 50mb
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({extended: true, limit: '50mb'}));
+app.set('trust proxy', 1 /* number of proxies between user and server */)
 
+// Rate limiter for the proxy
+const proxyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // Set ratelimit window at 15min (in ms)
+    max: 100, // Limit each IP to 100 requests per window 
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // no `X-RateLimit-*` headers
+    handler: (req, res, next, options) => {
+        console.warn(`Rate limit exceeded for IP: ${req.ip}. Path: ${req.path}`);
+        res.status(options.statusCode).send(options.message);
+    }
+});
 
-// Proxy route for Gemini API calls
-app.use('/api-proxy', async (req, res) => {
+// Apply the rate limiter to the /api-proxy route before the main proxy logic
+app.use('/api-proxy', proxyLimiter);
+
+// Proxy route for Gemini API calls (HTTP)
+app.use('/api-proxy', async (req, res, next) => {
+    console.log(req.ip);
+    // If the request is an upgrade request, it's for WebSockets, so pass to next middleware/handler
+    if (req.headers.upgrade && req.headers.upgrade.toLowerCase() === 'websocket') {
+        return next(); // Pass to the WebSocket upgrade handler
+    }
+
+    // Handle OPTIONS request for CORS preflight
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust as needed for security
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Goog-Api-Key'); 
+        res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response for 1 day
+        return res.sendStatus(200);
+    }
+
     if (req.body) { // Only log body if it exists
         console.log("  Request Body (from frontend):", req.body);
     }
     try {
-        const apiUrl = `${externalApiBaseUrl}${req.url}`; // Inject API key as query parameter
+        // Construct the target URL by taking the part of the path after /api-proxy/
+        const targetPath = req.url.startsWith('/') ? req.url.substring(1) : req.url; 
+        const apiUrl = `${externalApiBaseUrl}/${targetPath}`;
+        console.log(`HTTP Proxy: Forwarding request to ${apiUrl}`);
 
-        const apiResponse = await axios({
+        // Prepare headers for the outgoing request
+        const outgoingHeaders = {};
+        // Copy most headers from the incoming request
+        for (const header in req.headers) {
+            // Exclude host-specific headers and others that might cause issues upstream
+            if (!['host', 'connection', 'content-length', 'transfer-encoding', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'].includes(header.toLowerCase())) {
+                outgoingHeaders[header] = req.headers[header];
+            }
+        }
+
+        // Set the actual API key in the appropriate header
+        outgoingHeaders['X-Goog-Api-Key'] = apiKey;
+
+        // Set Content-Type from original request if present (for relevant methods)
+        if (req.headers['content-type'] && ['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
+            outgoingHeaders['Content-Type'] = req.headers['content-type'];
+        } else if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
+            // Default Content-Type to application/json if no content type for post/put/patch
+            outgoingHeaders['Content-Type'] = 'application/json';
+        }
+
+        // For GET or DELETE requests, ensure Content-Type is NOT sent,
+        // even if the client erroneously included it.
+        if (['GET', 'DELETE'].includes(req.method.toUpperCase())) {
+            delete outgoingHeaders['Content-Type']; // Case-sensitive common practice
+            delete outgoingHeaders['content-type']; // Just in case
+        }
+
+        // Ensure 'accept' is reasonable if not set
+        if (!outgoingHeaders['accept']) {
+            outgoingHeaders['accept'] = '*/*';
+        }
+
+
+        const axiosConfig = {
             method: req.method,
             url: apiUrl,
-            headers: {
-               'X-Goog-Api-Key': apiKey,
-               'Content-Type': 'application/json',
-               "accept": "*/*",
-               "accept-language": "en-US,en;q=0.9",
-               "priority": "u=1, i",
-               "sec-fetch-dest": "empty",
-               "sec-fetch-mode": "cors",
-               "sec-fetch-site": "cross-site",
-               },
-            data: req.body,
+            headers: outgoingHeaders,
             responseType: 'stream',
-        });
+            validateStatus: function (status) {
+                return true; // Accept any status code, we'll pipe it through
+            },
+        };
+
+        if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
+            axiosConfig.data = req.body;
+        }
+        // For GET, DELETE, etc., axiosConfig.data will remain undefined, 
+        // and axios will not send a request body.
+
+        const apiResponse = await axios(axiosConfig);
+
+        // Pass through response headers from Gemini API to the client
+        for (const header in apiResponse.headers) {
+            res.setHeader(header, apiResponse.headers[header]);
+        }
+        res.status(apiResponse.status);
 
 
         apiResponse.data.on('data', (chunk) => {
-            res.write(chunk); // Stream the data to the response
+            res.write(chunk);
         });
 
         apiResponse.data.on('end', () => {
-            res.end(); // Signal the end of the stream
+            res.end();
         });
 
-
-        // Handle errors during the stream
         apiResponse.data.on('error', (err) => {
-            console.error('Error during streaming:', err);
-            res.status(500).json({ error: 'Proxy error during streaming' });
-         });
-    } catch (error) {
-        console.error('Proxy error:', error);
+            console.error('Error during streaming data from target API:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Proxy error during streaming from target' });
+            } else {
+                // If headers already sent, we can't send a JSON error, just end the response.
+                res.end();
+            }
+        });
 
-        if (error.response) {
-            res.status(error.response.status).json(error.response.data);
-        } else {
-            res.status(500).json({ error: 'Proxy error' });
+    } catch (error) {
+        console.error('Proxy error before request to target API:', error);
+        if (!res.headersSent) {
+            if (error.response) {
+                const errorData = {
+                    status: error.response.status,
+                    message: error.response.data?.error?.message || 'Proxy error from upstream API',
+                    details: error.response.data?.error?.details || null
+                };
+                res.status(error.response.status).json(errorData);
+            } else {
+                res.status(500).json({ error: 'Proxy setup error', message: error.message });
+            }
         }
     }
 });
+
+const webSocketInterceptorScriptTag = `<script src="/public/websocket-interceptor.js" defer></script>`;
+
+// Prepare service worker registration script content 
 const serviceWorkerRegistrationScript = `
+<script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js') // Ensure this path is correct and accessible from the client
+  window.addEventListener('load' , () => {
+    navigator.serviceWorker.register('./service-worker.js')
       .then(registration => {
         console.log('Service Worker registered successfully with scope:', registration.scope);
       })
@@ -92,6 +192,7 @@ if ('serviceWorker' in navigator) {
 } else {
   console.log('Service workers are not supported in this browser.');
 }
+</script>
 `;
 
 // Serve index.html or placeholder based on API key and file availability
@@ -107,22 +208,29 @@ app.get('/', (req, res) => {
             // index.html not found or unreadable, serve the original placeholder
             console.log('LOG: index.html not found or unreadable. Falling back to original placeholder.');
             return res.sendFile(placeholderPath);
-        } else if (!apiKey) {
+        }
+
+        // If API key is not set, serve original HTML without injection
+        if (!apiKey) {
+          console.log("LOG: API key not set. Serving original index.html without script injections.");
           return res.sendFile(indexPath);
         }
 
-        // index.html found and apiKey set, inject service worker script
-        console.log("LOG: index.html read successfully. Injecting service worker script.");
-        let injectedHtml;
-        if (indexHtmlData.includes('<head>')) {
-            injectedHtml = indexHtmlData.replace(
+        // index.html found and apiKey set, inject scripts
+        console.log("LOG: index.html read successfully. Injecting scripts.");
+        let injectedHtml = indexHtmlData;
+
+
+        if (injectedHtml.includes('<head>')) {
+            // Inject WebSocket interceptor first, then service worker script
+            injectedHtml = injectedHtml.replace(
                 '<head>',
-                `<head><script>${serviceWorkerRegistrationScript}</script>`
+                `<head>${webSocketInterceptorScriptTag}${serviceWorkerRegistrationScript}`
             );
-            console.log("LOG: Service worker registration script injected after <head>.");
+            console.log("LOG: Scripts injected into <head>.");
         } else {
-            console.warn("WARNING: <head> tag not found in index.html. Prepending script to the beginning of the file as a fallback.");
-            injectedHtml = `<script>${serviceWorkerRegistrationScript}</script>${indexHtmlData}`;
+            console.warn("WARNING: <head> tag not found in index.html. Prepending scripts to the beginning of the file as a fallback.");
+            injectedHtml = `${webSocketInterceptorScriptTag}${serviceWorkerRegistrationScript}${indexHtmlData}`;
         }
         res.send(injectedHtml);
     });
@@ -135,7 +243,109 @@ app.get('/service-worker.js', (req, res) => {
 app.use('/public', express.static(publicPath));
 app.use(express.static(staticPath));
 
-app.listen(port, () => {
+// Start the HTTP server
+const server = app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
+    console.log(`HTTP proxy active on /api-proxy/**`);
+    console.log(`WebSocket proxy active on /api-proxy/**`);
+});
+
+// Create WebSocket server and attach it to the HTTP server
+const wss = new WebSocket.Server({ noServer: true });
+
+server.on('upgrade', (request, socket, head) => {
+    const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+    const pathname = requestUrl.pathname;
+
+    if (pathname.startsWith('/api-proxy/')) {
+        if (!apiKey) {
+            console.error("WebSocket proxy: API key not configured. Closing connection.");
+            socket.destroy();
+            return;
+        }
+
+        wss.handleUpgrade(request, socket, head, (clientWs) => {
+            console.log('Client WebSocket connected to proxy for path:', pathname);
+
+            const targetPathSegment = pathname.substring('/api-proxy'.length);
+            const clientQuery = new URLSearchParams(requestUrl.search);
+            clientQuery.set('key', apiKey);
+            const targetGeminiWsUrl = `${externalWsBaseUrl}${targetPathSegment}?${clientQuery.toString()}`;
+            console.log(`Attempting to connect to target WebSocket: ${targetGeminiWsUrl}`);
+
+            const geminiWs = new WebSocket(targetGeminiWsUrl, {
+                protocol: request.headers['sec-websocket-protocol'],
+            });
+
+            const messageQueue = [];
+
+            geminiWs.on('open', () => {
+                console.log('Proxy connected to Gemini WebSocket');
+                // Send any queued messages
+                while (messageQueue.length > 0) {
+                    const message = messageQueue.shift();
+                    if (geminiWs.readyState === WebSocket.OPEN) {
+                        // console.log('Sending queued message from client -> Gemini');
+                        geminiWs.send(message);
+                    } else {
+                        // Should not happen if we are in 'open' event, but good for safety
+                        console.warn('Gemini WebSocket not open when trying to send queued message. Re-queuing.');
+                        messageQueue.unshift(message); // Add it back to the front
+                        break; // Stop processing queue for now
+                    }
+                }
+            });
+
+            geminiWs.on('message', (message) => {
+                // console.log('Message from Gemini -> client');
+                if (clientWs.readyState === WebSocket.OPEN) {
+                    clientWs.send(message);
+                }
+            });
+
+            geminiWs.on('close', (code, reason) => {
+                console.log(`Gemini WebSocket closed: ${code} ${reason.toString()}`);
+                if (clientWs.readyState === WebSocket.OPEN || clientWs.readyState === WebSocket.CONNECTING) {
+                    clientWs.close(code, reason.toString());
+                }
+            });
+
+            geminiWs.on('error', (error) => {
+                console.error('Error on Gemini WebSocket connection:', error);
+                if (clientWs.readyState === WebSocket.OPEN || clientWs.readyState === WebSocket.CONNECTING) {
+                    clientWs.close(1011, 'Upstream WebSocket error');
+                }
+            });
+
+            clientWs.on('message', (message) => {
+                if (geminiWs.readyState === WebSocket.OPEN) {
+                    // console.log('Message from client -> Gemini');
+                    geminiWs.send(message);
+                } else if (geminiWs.readyState === WebSocket.CONNECTING) {
+                    // console.log('Queueing message from client -> Gemini (Gemini still connecting)');
+                    messageQueue.push(message);
+                } else {
+                    console.warn('Client sent message but Gemini WebSocket is not open or connecting. Message dropped.');
+                }
+            });
+
+            clientWs.on('close', (code, reason) => {
+                console.log(`Client WebSocket closed: ${code} ${reason.toString()}`);
+                if (geminiWs.readyState === WebSocket.OPEN || geminiWs.readyState === WebSocket.CONNECTING) {
+                    geminiWs.close(code, reason.toString());
+                }
+            });
+
+            clientWs.on('error', (error) => {
+                console.error('Error on client WebSocket connection:', error);
+                if (geminiWs.readyState === WebSocket.OPEN || geminiWs.readyState === WebSocket.CONNECTING) {
+                    geminiWs.close(1011, 'Client WebSocket error');
+                }
+            });
+        });
+    } else {
+        console.log(`WebSocket upgrade request for non-proxy path: ${pathname}. Closing connection.`);
+        socket.destroy();
+    }
 });
 
