@@ -12,6 +12,7 @@ const https = require('https');
 const path = require('path');
 const WebSocket = require('ws'); 
 const { URLSearchParams, URL } = require('url'); 
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -36,6 +37,21 @@ else {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({extended: true, limit: '50mb'}));
 
+// Rate limiter for the proxy
+const proxyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // Set ratelimit window at 15min (in ms)
+    max: 100, // Limit each IP to 100 requests per window 
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // no `X-RateLimit-*` headers
+    handler: (req, res, next, options) => {
+        console.warn(`Rate limit exceeded for IP: ${req.ip}. Path: ${req.path}`);
+        res.status(options.statusCode).send(options.message);
+    }
+});
+
+// Apply the rate limiter to the /api-proxy route before the main proxy logic
+app.use('/api-proxy', proxyLimiter);
 
 // Proxy route for Gemini API calls (HTTP)
 app.use('/api-proxy', async (req, res, next) => {
