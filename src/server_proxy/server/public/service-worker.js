@@ -26,7 +26,7 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(self.clients.claim());
   } catch (error) {
     console.error('Service Worker: Error during activate event:', error);
-    // If clients.claim() fails, the SW might not control existing pages until next navigation.
+    // If clients.claim() fails, the SW might not control existing pages until next nav.
   }
 });
 
@@ -48,17 +48,13 @@ self.addEventListener('fetch', (event) => {
       if (event.request.headers.has('Content-Type')) {
         newHeaders.set('Content-Type', event.request.headers.get('Content-Type'));
       }
-      // Add other essential headers like Authorization if your proxy specifically needs them,
-      // but for now, Content-Type is the most likely important one.
 
       const requestOptions = {
         method: event.request.method,
         headers: newHeaders, // Use simplified headers
         body: event.request.body, // Still use the original body stream
         mode: 'cors', // Explicitly set mode for the request to the proxy
-        // Omitting credentials, cache, redirect, referrer, integrity for simplicity,
-        // as they might not be appropriate to pass from a cross-origin request
-        // to a same-origin proxy without careful consideration.
+        // Omitting credentials, cache, redirect, referrer, integrity for simplicity
       };
 
       // Only set duplex if there's a body and it's a relevant method
