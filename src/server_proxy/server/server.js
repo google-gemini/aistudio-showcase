@@ -71,35 +71,45 @@ app.use('/api-proxy', async (req, res, next) => {
         return res.sendStatus(200);
     }
 
-    if (req.body) { // Only log body if it exists
-        console.log("  Request Body (from frontend):", req.body);
-    }
     try {
         // Construct the target URL by taking the part of the path after /api-proxy/
         const targetPath = req.url.startsWith('/') ? req.url.substring(1) : req.url; 
         const apiUrl = `${externalApiBaseUrl}/${targetPath}`;
         console.log(`HTTP Proxy: Forwarding request to ${apiUrl}`);
-
-        // Prepare headers for the outgoing request
+        const allowedClientHeaders = [
+            'accept',
+            'accept-language', 
+            'x-goog-api-client', // For SDK telemetry
+            'x-server-timeout', // If the SDK sets a client-side timeout
+            'x-goog-request-params', // Another common Google API header, often for routing. SDK might set this.
+        ];
+        
         const outgoingHeaders = {};
-        // Copy most headers from the incoming request
-        for (const header in req.headers) {
-            // Exclude host-specific headers and others that might cause issues upstream
-            if (!['host', 'connection', 'content-length', 'transfer-encoding', 'upgrade', 'sec-websocket-key', 'sec-websocket-version', 'sec-websocket-extensions'].includes(header.toLowerCase())) {
-                outgoingHeaders[header] = req.headers[header];
+        
+        // Forward allowed headers from the client
+        for (const headerName of allowedClientHeaders) {
+            if (req.headers[headerName]) {
+                outgoingHeaders[headerName] = req.headers[headerName];
             }
         }
-
-        // Set the actual API key in the appropriate header
+        
+        // Set mandatory headers 
         outgoingHeaders['X-Goog-Api-Key'] = apiKey;
-
-        // Set Content-Type from original request if present (for relevant methods)
-        if (req.headers['content-type'] && ['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
-            outgoingHeaders['Content-Type'] = req.headers['content-type'];
-        } else if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
-            // Default Content-Type to application/json if no content type for post/put/patch
-            outgoingHeaders['Content-Type'] = 'application/json';
+        outgoingHeaders['User-Agent'] = 'Applet-Proxy-Server/1.0'; // Identify your proxy
+        
+        // Handle Content-Type specifically based on method
+        const requestMethod = req.method.toUpperCase();
+        if (['POST', 'PUT', 'PATCH'].includes(requestMethod)) {
+            if (req.headers['content-type'] &&
+                (req.headers['content-type'].toLowerCase().includes('application/json') ||
+                 req.headers['content-type'].toLowerCase().includes('multipart/form-data'))) {
+                outgoingHeaders['Content-Type'] = req.headers['content-type'];
+            } else {
+                // Default if not provided or not a recognized type for these methods by client
+                outgoingHeaders['Content-Type'] = 'application/json';
+            }
         }
+ 
 
         // For GET or DELETE requests, ensure Content-Type is NOT sent,
         // even if the client erroneously included it.
@@ -161,14 +171,9 @@ app.use('/api-proxy', async (req, res, next) => {
         console.error('Proxy error before request to target API:', error);
         if (!res.headersSent) {
             if (error.response) {
-                const errorData = {
-                    status: error.response.status,
-                    message: error.response.data?.error?.message || 'Proxy error from upstream API',
-                    details: error.response.data?.error?.details || null
-                };
-                res.status(error.response.status).json(errorData);
+                res.status(error.response.status);
             } else {
-                res.status(500).json({ error: 'Proxy setup error', message: error.message });
+                res.status(500).json({ error: 'Proxy setup error' });
             }
         }
     }
