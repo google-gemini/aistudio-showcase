@@ -135,7 +135,12 @@ app.use('/api-proxy', async (req, res, next) => {
         };
 
         if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
-            axiosConfig.data = req.body;
+            if (req.headers['content-type'] && req.headers['content-type'].toLowerCase().startsWith('multipart/form-data')) {
+                axiosConfig.data = req;
+                axiosConfig.headers['Content-Length'] = req.headers['content-length'];
+            } else {
+                axiosConfig.data = req.body;
+            }
         }
         // For GET, DELETE, etc., axiosConfig.data will remain undefined, 
         // and axios will not send a request body.
@@ -353,4 +358,3 @@ server.on('upgrade', (request, socket, head) => {
         socket.destroy();
     }
 });
-
