@@ -72,24 +72,30 @@ self.addEventListener('fetch', (event) => {
         }
       }
 
-      const requestOptions = {
-        method: event.request.method,
-        headers: newHeaders, // Use simplified headers
-        body: event.request.body, // Still use the original body stream
-        mode: event.request.mode,
-        credentials: event.request.credentials,
-        cache: event.request.cache,
-        redirect: event.request.redirect,
-        referrer: event.request.referrer,
-        integrity: event.request.integrity,
+      const createProxyRequest = async () => {
+        const body = event.request.method !== 'GET' && event.request.method !== 'HEAD' ? await event.request.arrayBuffer() : undefined;
+
+        const requestOptions = {
+          method: event.request.method,
+          headers: newHeaders,
+          body: body,
+          mode: event.request.mode,
+          credentials: event.request.credentials,
+          cache: event.request.cache,
+          redirect: event.request.redirect,
+          referrer: event.request.referrer,
+          integrity: event.request.integrity,
+        };
+
+        // Only set duplex if there's a body and it's a relevant method
+        if (event.request.method !== 'GET' && event.request.method !== 'HEAD' && body ) {
+          requestOptions.duplex = 'half';
+        }
+
+        return new Request(proxyUrl, requestOptions);
       };
 
-      // Only set duplex if there's a body and it's a relevant method
-      if (event.request.method !== 'GET' && event.request.method !== 'HEAD' && event.request.body ) {
-        requestOptions.duplex = 'half';
-      }
-
-      const promise = fetch(new Request(proxyUrl, requestOptions))
+      const promise = createProxyRequest().then(proxyRequest => fetch(proxyRequest))
         .then((response) => {
           console.log(`Service Worker: Successfully proxied request to ${proxyUrl}, Status: ${response.status}`);
           return response;
