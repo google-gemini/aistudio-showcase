@@ -88,7 +88,7 @@ self.addEventListener('fetch', (event) => {
         };
 
         // Only set duplex if there's a body and it's a relevant method
-        if (event.request.method !== 'GET' && event.request.method !== 'HEAD' && body ) {
+        if (body) {
           requestOptions.duplex = 'half';
         }
 
