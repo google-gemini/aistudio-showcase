@@ -345,7 +345,7 @@ server.on('upgrade', (request, socket, head) => {
                     // The ws library throws exceptions if it receives these codes. We want in these cases to
                     // close the Gemini WS cleanly, so we adapt them to a normal closure code instead.
                     
-                    const adaptedCode = (code == 1005 || code == 1006 || code == 1015) ? 1001 : code;
+                    const adaptedCode = [1005, 1006, 1015].includes(code) ? 1001 : code;
                     
                     geminiWs.close(adaptedCode, reason.toString());
                 }
