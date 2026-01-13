@@ -337,7 +337,17 @@ server.on('upgrade', (request, socket, head) => {
             clientWs.on('close', (code, reason) => {
                 console.log(`Client WebSocket closed: ${code} ${reason.toString()}`);
                 if (geminiWs.readyState === WebSocket.OPEN || geminiWs.readyState === WebSocket.CONNECTING) {
-                    geminiWs.close(code, reason.toString());
+                    // The close codes 1005, 1006, and 1015 are reserved for internal use in the protocol; they
+                    // must not be sent by clients. 1005 in particular means that the client did not specify
+                    // any code, which is a common situation. 1006 has to do with abnormal closure. 1015 has to
+                    // do with TLS errors.
+                    
+                    // The ws library throws exceptions if it receives these codes. We want in these cases to
+                    // close the Gemini WS cleanly, so we adapt them to a normal closure code instead.
+                    
+                    const adaptedCode = [1005, 1006, 1015].includes(code) ? 1001 : code;
+                    
+                    geminiWs.close(adaptedCode, reason.toString());
                 }
             });
 
